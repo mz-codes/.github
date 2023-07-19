@@ -1,7 +1,3 @@
 # MZ Group GitHub
-Public profile for MZ Codes
-
-## Teams
-- xxx
-- xxx
-- xxx
+Welcome to MZ Group GitHub Repository.
+Please talk to your leader to request access to your team repositories.
