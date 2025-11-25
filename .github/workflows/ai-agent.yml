@@ -1,0 +1,64 @@
+name: AI Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Instruction for the AI Agent'
+        required: true
+        type: string
+      model:
+        description: 'Gemini Model ID'
+        required: false
+        default: 'gemini-2.5-flash'
+  schedule:
+    # Run every Monday and Thursday at 00:00 UTC
+    - cron: '0 0 * * 1,4'
+
+jobs:
+  execute-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Gemini CLI installation directory
+        run: echo "GEMINI_CLI_DIR=$HOME/.gemini-cli" >> $GITHUB_ENV
+
+      - name: Cache Gemini CLI
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.GEMINI_CLI_DIR }}
+          key: ${{ runner.os }}-gemini-cli
+          restore-keys: |
+            ${{ runner.os }}-gemini-cli-
+
+      - name: Install Gemini CLI
+        run: |
+          if [ ! -d "$GEMINI_CLI_DIR" ]; then
+            npm install --prefix "$GEMINI_CLI_DIR" @google/gemini-cli
+          else
+            echo "gemini-cli already installed, skipping installation"
+          fi
+
+      - name: Execute AI Task
+        if: github.event_name != 'schedule'
+        run: |
+          sanitized_prompt=$(printf '%s' "$PROMPT" | tr '\n' ' ' | tr -d "()|&;<>\`\$\"\\\\")
+          npx --prefix "$GEMINI_CLI_DIR" gemini --model "$GEMINI_MODEL" "$sanitized_prompt" 2>&1 | tee agent_output.txt
+        env:
+          GEMINI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          PROMPT: ${{ inputs.prompt }}
+          GEMINI_MODEL: ${{ inputs.model }}
+
+      - name: Upload Agent Output
+        if: github.event_name != 'schedule' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-result-log
+          path: agent_output.txt
+          retention-days: 1
