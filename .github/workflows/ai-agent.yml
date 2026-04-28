@@ -3,6 +3,11 @@ name: AI Agent
 on:
   workflow_dispatch:
     inputs:
+      provider:
+        description: 'AI provider ID'
+        required: false
+        default: 'gemini'
+        type: string
       prompt:
         description: 'Instruction for the AI Agent'
         required: true
@@ -30,7 +35,7 @@ jobs:
         if: github.event_name != 'schedule'
         uses: mz-codes/mz-ai-agent-action@v1
         with:
-          provider: gemini
+          provider: ${{ inputs.provider }}
           prompt: ${{ inputs.prompt }}
           model: ${{ inputs.model }}
           credentials-map: ${{ secrets.AI_AGENT_CREDENTIALS }}
