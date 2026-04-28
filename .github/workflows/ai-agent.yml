@@ -4,21 +4,23 @@ on:
   workflow_dispatch:
     inputs:
       provider:
-        description: 'AI provider ID'
+        description: AI agent/tool ID
         required: false
-        default: 'gemini'
+        default: gemini-cli
         type: string
       prompt:
-        description: 'Instruction for the AI Agent'
+        description: Instruction for the AI Agent
         required: true
         type: string
       model:
-        description: 'Gemini Model ID'
+        description: Model ID for the selected agent/tool
         required: false
-        default: 'gemini-2.5-flash'
-  schedule:
-    # Run every Monday and Thursday at 00:00 UTC
-    - cron: '0 0 * * 1,4'
+        default: gemini-3-flash-preview
+        type: string
+      extra-options:
+        description: Provider-specific options in key=value,key=value format
+        required: false
+        type: string
 
 jobs:
   execute-agent:
@@ -29,7 +31,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Execute AI Task
         if: github.event_name != 'schedule'
@@ -38,7 +40,5 @@ jobs:
           provider: ${{ inputs.provider }}
           prompt: ${{ inputs.prompt }}
           model: ${{ inputs.model }}
+          extra-options: ${{ inputs.extra-options }}
           credentials-map: ${{ secrets.AI_AGENT_CREDENTIALS }}
-          location: global
-          artifact-name: agent-result-log
-          retention-days: 1
