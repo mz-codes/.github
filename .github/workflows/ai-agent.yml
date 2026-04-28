@@ -21,11 +21,16 @@ on:
         description: Provider-specific options in key=value,key=value format
         required: false
         type: string
+      timeout-minutes:
+        description: Job timeout in minutes
+        required: false
+        default: 30
+        type: number
 
 jobs:
   execute-agent:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: ${{ inputs['timeout-minutes'] }}
 
     permissions:
       contents: write
